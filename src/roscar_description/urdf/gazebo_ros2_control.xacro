@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!--
+        Gazebo ros2_control 接入。
+        只控制后轮作为差速驱动轮；前轮不进入 ros2_control，
+        在 Gazebo 中作为低摩擦被动支撑轮。
+    -->
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+
+        <joint name="rear_left_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10.0</param>
+                <param name="max">10.0</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <joint name="rear_right_wheel_joint">
+            <command_interface name="velocity">
+                <param name="min">-10.0</param>
+                <param name="max">10.0</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+
+    </ros2_control>
+
+    <gazebo>
+        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+            <parameters>$(find roscar_simulation)/config/ros2_controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <!--
+        前轮不参与驱动，但保留一点纵向滚动摩擦来稳定车头；
+        侧向摩擦保持很低，避免转弯时顶住车头。
+        后轮保留抓地力，用于实际差速驱动。
+        fdir1 指定轮胎滚动方向；mu1 是纵向摩擦，mu2 是侧向摩擦。
+    -->
+    <gazebo reference="front_left_wheel">
+        <mu1>0.15</mu1>
+        <mu2>0.01</mu2>
+        <fdir1>1 0 0</fdir1>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+    <gazebo reference="front_right_wheel">
+        <mu1>0.15</mu1>
+        <mu2>0.01</mu2>
+        <fdir1>1 0 0</fdir1>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+
+    <gazebo reference="rear_left_wheel">
+        <mu1>1.2</mu1>
+        <mu2>0.25</mu2>
+        <fdir1>1 0 0</fdir1>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+    <gazebo reference="rear_right_wheel">
+        <mu1>1.2</mu1>
+        <mu2>0.25</mu2>
+        <fdir1>1 0 0</fdir1>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+
+</robot>

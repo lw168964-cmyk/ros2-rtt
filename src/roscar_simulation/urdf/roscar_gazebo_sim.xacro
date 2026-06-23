@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot name="roscar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 仿真专用入口：复用 description 的机器人模型，再叠加 Gazebo 控制插件。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/roscar.urdf.xacro"/>
+
+    <!-- Gazebo ros2_control 接入，仅在仿真模型中启用。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/gazebo_ros2_control.xacro"/>
+
+    <!-- Gazebo 传感器仿真插件，仅在仿真模型中启用。 -->
+    <xacro:include filename="$(find roscar_simulation)/plugins/gazebo_sensor_plugins.xacro"/>
+
+</robot>

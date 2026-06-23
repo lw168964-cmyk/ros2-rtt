@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 车体尺寸参数，单位为米；通过属性集中管理，便于后续调整整车比例。 -->
+    <xacro:property name="base_length" value="0.3"/>
+    <xacro:property name="base_width" value="0.2"/>
+    <xacro:property name="base_height" value="0.06"/>
+    <xacro:property name="wheel_radius" value="0.04"/>
+    <xacro:property name="wheel_length" value="0.03"/>
+    <xacro:property name="base_mass" value="2.0"/>
+    <xacro:property name="wheel_mass" value="0.18"/>
+
+    <!-- base_footprint 是投影在地面上的机器人参考坐标系，常用于导航和 TF 树根部。 -->
+    <link name="base_footprint"/>
+
+    <!-- base_link 位于车体中心附近，向上抬高一个轮半径，使车轮与地面相切。 -->
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- 主车身：蓝色长方体，同时提供 visual 和 collision 方便显示与碰撞检测。 -->
+    <link name="base_link">
+        <xacro:box_inertial
+            mass="${base_mass}"
+            x="${base_length}"
+            y="${base_width}"
+            z="${base_height}"
+            origin_xyz="0 0 ${base_height/2}"/>
+        <visual>
+            <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0.1 0.1 0.8 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- 车轮宏：通过前后左右的符号参数复用同一套 link/joint 定义。 -->
+    <xacro:macro name="roscar_wheel" params="prefix x_reflect y_reflect">
+        <!-- 单个车轮：圆柱绕 Y 轴布置，灰色材质仅用于 RViz/Gazebo 可视化。 -->
+        <link name="${prefix}_wheel">
+            <xacro:wheel_y_inertial
+                mass="${wheel_mass}"
+                radius="${wheel_radius}"
+                length="${wheel_length}"/>
+            <visual>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+                </geometry>
+                <material name="gray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <!-- 连续关节表示轮子可无限旋转；正速度应驱动车体沿 base_link +X 前进。 -->
+        <joint name="${prefix}_wheel_joint" type="continuous">
+            <parent link="base_link"/>
+            <child link="${prefix}_wheel"/>
+            <origin xyz="${x_reflect * (base_length/2 - wheel_radius)} ${y_reflect * (base_width/2 + wheel_length/2)} 0" rpy="0 0 0"/>
+            <axis xyz="0 1 0"/>
+        </joint>
+    </xacro:macro>
+
+    <!-- 实例化四个车轮：x_reflect 控制前后位置，y_reflect 控制左右位置。 -->
+    <xacro:roscar_wheel prefix="rear_left" x_reflect="-1" y_reflect="1" />
+    <xacro:roscar_wheel prefix="rear_right" x_reflect="-1" y_reflect="-1" />
+    <xacro:roscar_wheel prefix="front_left" x_reflect="1" y_reflect="1" />
+    <xacro:roscar_wheel prefix="front_right" x_reflect="1" y_reflect="-1" />
+
+</robot>

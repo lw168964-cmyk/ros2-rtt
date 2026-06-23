@@ -1,0 +1,154 @@
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.0
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 1.0
+
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["precise_goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.03
+      movement_time_allowance: 15.0
+
+    precise_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.18
+      yaw_goal_tolerance: 3.14
+      stateful: True
+
+    FollowPath:
+      plugin: "nav2_rotation_shim_controller::RotationShimController"
+      primary_controller: "dwb_core::DWBLocalPlanner"
+      angular_dist_threshold: 0.35
+      forward_sampling_distance: 0.35
+      rotate_to_heading_angular_vel: 0.55
+      max_angular_accel: 1.2
+      simulate_ahead_time: 0.15
+
+      debug_trajectory_details: false
+      transform_tolerance: 0.2
+
+      min_vel_x: 0.0
+      max_vel_x: 0.10
+      min_vel_y: 0.0
+      max_vel_y: 0.0
+
+      max_vel_theta: 0.75
+      min_vel_theta: -0.75
+
+      min_speed_xy: 0.0
+      max_speed_xy: 0.10
+      min_speed_theta: 0.05
+
+      acc_lim_x: 0.35
+      acc_lim_y: 0.0
+      acc_lim_theta: 1.2
+
+      decel_lim_x: -0.35
+      decel_lim_y: 0.0
+      decel_lim_theta: -1.2
+
+      vx_samples: 20
+      vy_samples: 1
+      vtheta_samples: 40
+
+      sim_time: 1.0
+      linear_granularity: 0.02
+      angular_granularity: 0.02
+
+      xy_goal_tolerance: 0.18
+      trans_stopped_velocity: 0.01
+      short_circuit_trajectory_evaluation: false
+      stateful: true
+
+      critics: ["Oscillation", "BaseObstacle", "ObstacleFootprint", "PathAlign", "GoalAlign", "PathDist", "GoalDist"]
+
+      BaseObstacle.scale: 0.12
+      ObstacleFootprint.scale: 0.05
+
+      PathAlign.scale: 2.2
+      GoalAlign.scale: 1.4
+      PathAlign.forward_point_distance: 0.18
+      GoalAlign.forward_point_distance: 0.18
+
+      PathDist.scale: 2.2
+      GoalDist.scale: 0.9
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 10.0
+      publish_frequency: 5.0
+      global_frame: odom
+      robot_base_frame: base_footprint
+      transform_tolerance: 0.5
+      use_sim_time: True
+
+      rolling_window: true
+      width: 3
+      height: 3
+      resolution: 0.05
+
+      footprint: "[[0.16, 0.13], [0.16, -0.13], [-0.16, -0.13], [-0.16, 0.13]]"
+      footprint_padding: 0.0
+
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 0.8
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          expected_update_rate: 0.1
+          observation_persistence: 0.0
+          raytrace_max_range: 5.0
+          raytrace_min_range: 0.12
+          obstacle_max_range: 4.0
+          obstacle_min_range: 0.12
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.10
+        cost_scaling_factor: 5.0
+
+      always_send_full_costmap: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_footprint
+      transform_tolerance: 0.5
+      use_sim_time: True
+
+      footprint: "[[0.16, 0.13], [0.16, -0.13], [-0.16, -0.13], [-0.16, 0.13]]"
+      footprint_padding: 0.0
+      resolution: 0.05
+
+      track_unknown_space: true
+
+      plugins: ["static_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.16
+        cost_scaling_factor: 4.0
+
+      always_send_full_costmap: True      

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="roscar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 主入口文件：把机器人底盘、传感器和仿真相关描述组合成完整的 roscar 模型。 -->
+
+    <!-- 通用质量和惯性宏。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/common_inertial.xacro"/>
+
+    <!-- 底盘、base_footprint、base_link 和四个车轮。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/roscar_base.xacro"/>
+
+    <!-- IMU、相机、相机光学坐标系和激光雷达。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/roscar_sensors.xacro"/>
+
+    <!-- Gazebo 专用参数；RViz 显示时会忽略这些扩展标签。 -->
+    <xacro:include filename="$(find roscar_description)/urdf/roscar_gazebo.xacro"/>
+
+</robot>

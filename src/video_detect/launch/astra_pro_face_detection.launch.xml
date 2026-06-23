@@ -1,0 +1,15 @@
+<launch>
+  <arg name="camera_name" default="camera"/>
+  <arg name="image_topic" default="/$(var camera_name)/color/image_raw"/>
+  <arg name="cascade_path" default=""/>
+
+  <include file="$(find-pkg-share astra_camera)/launch/astra_pro.launch.xml">
+    <arg name="camera_name" value="$(var camera_name)"/>
+    <arg name="enable_color" value="true"/>
+  </include>
+
+  <node pkg="video_detect" exec="face_recognition_node" name="face_recognition_node" output="screen">
+    <param name="image_topic" value="$(var image_topic)"/>
+    <param name="cascade_path" value="$(var cascade_path)"/>
+  </node>
+</launch>

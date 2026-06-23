@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 传感器尺寸和安装位置，单位为米；与底盘尺寸配合，保持整车比例协调。 -->
+    <xacro:property name="base_height" value="0.06"/>
+    <xacro:property name="laser_mount_x" value="0.075"/>
+    <xacro:property name="laser_support_height" value="0.03"/>
+    <xacro:property name="laser_support_radius" value="0.006"/>
+    <xacro:property name="laser_radius" value="0.025"/>
+    <xacro:property name="laser_height" value="0.025"/>
+    <xacro:property name="camera_mount_x" value="${laser_mount_x - 0.05}"/>
+    <xacro:property name="camera_mount_height" value="0.13"/>
+    <xacro:property name="camera_length" value="0.15"/>
+    <xacro:property name="camera_width" value="0.04"/>
+    <xacro:property name="camera_height" value="0.03"/>
+    <xacro:property name="camera_support_radius" value="0.005"/>
+    <xacro:property name="camera_support_height" value="${camera_mount_height - camera_height/2}"/>
+    <xacro:property name="camera_support_y" value="${camera_length/2 - 0.02}"/>
+    <xacro:property name="imu_mass" value="0.03"/>
+    <xacro:property name="camera_mass" value="0.25"/>
+    <xacro:property name="camera_support_mass" value="0.03"/>
+    <xacro:property name="laser_support_mass" value="0.02"/>
+    <xacro:property name="laser_mass" value="0.15"/>
+
+    <!-- IMU 外形：放在车体上方的小黑色盒子，对应 imu_link 坐标系。 -->
+    <link name="imu_link">
+        <xacro:box_inertial mass="${imu_mass}" x="0.02" y="0.02" z="0.01"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.02 0.02 0.01"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.1 0.1 0.1 1.0"/>
+            </material>
+        </visual>
+    </link>
+
+    <!-- IMU 固定在 base_link 上方，略高于车体上表面。 -->
+    <joint name="imu_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin xyz="0 0 ${base_height + 0.006}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- 前置 AstraPro 深度相机：放在雷达后方 5cm，横向长 15cm、前后宽 4cm。 -->
+    <link name="AstraPro_camera_link">
+        <xacro:box_inertial
+            mass="${camera_mass}"
+            x="${camera_width}"
+            y="${camera_length}"
+            z="${camera_height}"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${camera_width} ${camera_length} ${camera_height}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${camera_width} ${camera_length} ${camera_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- 相机固定在车面上方 13cm，位于雷达后方 5cm 处。 -->
+    <joint name="AstraPro_camera_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="AstraPro_camera_link"/>
+        <origin xyz="${camera_mount_x} 0 ${base_height + camera_mount_height}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- ROS 相机光学坐标系：满足 REP-103，Z 轴朝前、X 轴向右、Y 轴向下。 -->
+    <link name="AstraPro_camera_optical_frame"/>
+    <joint name="AstraPro_camera_optical_joint" type="fixed">
+        <parent link="AstraPro_camera_link"/>
+        <child link="AstraPro_camera_optical_frame"/>
+        <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+
+    <!-- AstraPro 左侧支撑杆。 -->
+    <link name="AstraPro_left_support_link">
+        <xacro:cylinder_z_inertial
+            mass="${camera_support_mass}"
+            radius="${camera_support_radius}"
+            length="${camera_support_height}"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${camera_support_radius}" length="${camera_support_height}"/>
+            </geometry>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${camera_support_radius}" length="${camera_support_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- AstraPro 右侧支撑杆。 -->
+    <link name="AstraPro_right_support_link">
+        <xacro:cylinder_z_inertial
+            mass="${camera_support_mass}"
+            radius="${camera_support_radius}"
+            length="${camera_support_height}"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${camera_support_radius}" length="${camera_support_height}"/>
+            </geometry>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${camera_support_radius}" length="${camera_support_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- 两根支撑杆固定到车体上表面，并顶到相机下方左右两侧。 -->
+    <joint name="AstraPro_left_support_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="AstraPro_left_support_link"/>
+        <origin xyz="${camera_mount_x} ${camera_support_y} ${base_height + camera_support_height/2}" rpy="0 0 0"/>
+    </joint>
+    <joint name="AstraPro_right_support_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="AstraPro_right_support_link"/>
+        <origin xyz="${camera_mount_x} ${-camera_support_y} ${base_height + camera_support_height/2}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- 雷达支撑杆：安装在车体靠前位置，高度为 0.03m。 -->
+    <link name="laser_support_link">
+        <xacro:cylinder_z_inertial
+            mass="${laser_support_mass}"
+            radius="${laser_support_radius}"
+            length="${laser_support_height}"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${laser_support_radius}" length="${laser_support_height}"/>
+            </geometry>
+            <material name="gray"/>
+        </visual>
+    </link>
+
+    <!-- 支撑杆固定到车体前部上表面。 -->
+    <joint name="laser_support_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="laser_support_link"/>
+        <origin xyz="${laser_mount_x} 0 ${base_height + laser_support_height/2}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- 激光雷达外形：圆柱形，高 0.025m，半径 0.025m。 -->
+    <link name="laser_link">
+        <xacro:cylinder_z_inertial
+            mass="${laser_mass}"
+            radius="${laser_radius}"
+            length="${laser_height}"/>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${laser_radius}" length="${laser_height}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+    </link>
+
+    <!-- 雷达固定关节：直接安装到 base_link，支撑杆仅作为外观件，避免 Gazebo 固定关节链影响传感器。 -->
+    <joint name="laser_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="laser_link"/>
+        <origin xyz="${laser_mount_x} 0 ${base_height + laser_support_height + laser_height/2}" rpy="0 0 0"/>
+    </joint>
+
+</robot>

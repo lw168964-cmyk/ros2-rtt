@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Gazebo 扩展入口：这里放仿真材质、传感器插件和控制插件。 -->
+    <!-- 当前文件保持最小配置，主要用于补齐 roscar.urdf.xacro 的 include。 -->
+
+    <!-- 为 base_link 指定 Gazebo 显示材质；不会影响 RViz 中的 URDF visual 材质。 -->
+    <gazebo reference="base_link">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <!-- 为四个车轮指定 Gazebo 显示材质。 -->
+    <gazebo reference="front_left_wheel">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="front_right_wheel">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="rear_left_wheel">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="rear_right_wheel">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <!-- 为传感器和雷达支撑杆指定 Gazebo 显示材质。 -->
+    <gazebo reference="AstraPro_camera_link">
+        <material>Gazebo/Black</material>
+    </gazebo>
+    <gazebo reference="AstraPro_left_support_link">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="AstraPro_right_support_link">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="laser_support_link">
+        <material>Gazebo/Grey</material>
+    </gazebo>
+    <gazebo reference="laser_link">
+        <material>Gazebo/Black</material>
+    </gazebo>
+
+</robot>

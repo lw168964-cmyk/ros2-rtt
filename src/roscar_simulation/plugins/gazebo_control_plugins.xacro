@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!--
+        最简单的 Gazebo 差速驱动插件。
+        订阅 /cmd_vel，驱动后轮，并发布 /odom。
+        后续如果改用 ros_control，可以在其他 xacro 中替换这里的控制插件。
+    -->
+
+    <gazebo>
+        <plugin name="roscar_diff_drive" filename="libgazebo_ros_diff_drive.so">
+            <ros>
+                <namespace>/</namespace>
+                <remapping>cmd_vel:=cmd_vel</remapping>
+                <remapping>odom:=odom</remapping>
+            </ros>
+
+            <!-- 最简单的差速驱动：只驱动后轮，前轮作为随动轮。 -->
+            <left_joint>rear_left_wheel_joint</left_joint>
+            <right_joint>rear_right_wheel_joint</right_joint>
+
+            <!-- 车轮中心左右间距 0.2 + 0.03 = 0.23m，轮径 0.08m。 -->
+            <wheel_separation>0.23</wheel_separation>
+            <wheel_diameter>0.08</wheel_diameter>
+
+            <!-- 小车轻量级键盘遥控用的基础限制。 -->
+            <max_wheel_torque>2.0</max_wheel_torque>
+            <max_wheel_acceleration>4.0</max_wheel_acceleration>
+
+            <!-- 发布里程计，方便后续导航或调试。 -->
+            <publish_odom>true</publish_odom>
+            <publish_odom_tf>true</publish_odom_tf>
+            <publish_wheel_tf>false</publish_wheel_tf>
+            <odometry_frame>odom</odometry_frame>
+            <robot_base_frame>base_footprint</robot_base_frame>
+        </plugin>
+    </gazebo>
+
+    <!-- 轮子接触摩擦参数，改善 Gazebo 中键盘控制时的抓地表现。 -->
+    <gazebo reference="front_left_wheel">
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+    <gazebo reference="front_right_wheel">
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+    <gazebo reference="rear_left_wheel">
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+    <gazebo reference="rear_right_wheel">
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1000000.0</kp>
+        <kd>1.0</kd>
+        <minDepth>0.001</minDepth>
+        <maxVel>0.1</maxVel>
+    </gazebo>
+
+</robot>
