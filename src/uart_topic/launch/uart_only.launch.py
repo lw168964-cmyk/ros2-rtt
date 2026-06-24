@@ -37,9 +37,24 @@ def generate_launch_description():
         }]
     )
 
+    odom_tf_node = Node(
+        package='uart_topic',
+        executable='recive_to_odom_tf',
+        name='recive_to_odom_tf',
+        output='screen',
+        parameters=[{
+            'recive_topic': '/recive_data',
+            'odom_topic': '/odom',
+            'odom_frame': 'odom',
+            'base_frame': 'base_footprint',
+            'publish_tf': True,
+        }]
+    )
+
     return LaunchDescription([
         port_arg,
         baud_arg,
         rate_arg,
         uart_node,
+        odom_tf_node,
     ])

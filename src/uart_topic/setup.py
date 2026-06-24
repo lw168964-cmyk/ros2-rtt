@@ -34,6 +34,7 @@ setup(
     entry_points={
         'console_scripts': [
             'uart_send_receive = uart_topic.uart_send_receive:main',
+            'recive_to_odom_tf = uart_topic.recive_to_odom_tf:main',
             'uart_qt = uart_topic.uart_qt:main',
             'uart_keyboard_control = uart_topic.keyboard_control:main',
         ],

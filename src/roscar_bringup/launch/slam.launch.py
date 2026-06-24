@@ -13,22 +13,28 @@ def generate_launch_description():
     bringup_share = get_package_share_directory('roscar_bringup')
     description_share = get_package_share_directory('roscar_description')
     lslidar_share = get_package_share_directory('lslidar_driver')
+    uart_share = get_package_share_directory('uart_topic')
 
     default_slam_params = os.path.join(
         bringup_share, 'config', 'mapper_params_scan_only.yaml')
     default_rviz_config = os.path.join(bringup_share, 'rviz', 'slam.rviz')
     default_lidar_launch = os.path.join(
-        lslidar_share, 'launch', 'lsm10_uart_launch.py')
+        lslidar_share, 'launch', 'lsn10p_launch.py')
     description_launch = os.path.join(
         description_share, 'launch', 'description.launch.py')
+    default_uart_launch = os.path.join(
+        uart_share, 'launch', 'uart_only.launch.py')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_lidar = LaunchConfiguration('use_lidar')
     use_robot_state = LaunchConfiguration('use_robot_state')
     use_rviz = LaunchConfiguration('use_rviz')
+    use_uart = LaunchConfiguration('use_uart')
+    use_static_odom = LaunchConfiguration('use_static_odom')
     slam_params_file = LaunchConfiguration('slam_params_file')
     rviz_config = LaunchConfiguration('rviz_config')
     lidar_launch = LaunchConfiguration('lidar_launch')
+    uart_launch = LaunchConfiguration('uart_launch')
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -52,6 +58,16 @@ def generate_launch_description():
             description='Start RViz2 for map and scan visualization.',
         ),
         DeclareLaunchArgument(
+            'use_uart',
+            default_value='true',
+            description='Start UART feedback, /odom and dynamic TF.',
+        ),
+        DeclareLaunchArgument(
+            'use_static_odom',
+            default_value='false',
+            description='Publish a fixed odom -> base_footprint fallback.',
+        ),
+        DeclareLaunchArgument(
             'slam_params_file',
             default_value=default_slam_params,
             description='Full path to slam_toolbox parameters.',
@@ -66,6 +82,11 @@ def generate_launch_description():
             default_value=default_lidar_launch,
             description='Full path to the lslidar launch file.',
         ),
+        DeclareLaunchArgument(
+            'uart_launch',
+            default_value=default_uart_launch,
+            description='Full path to the UART odometry launch file.',
+        ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(description_launch),
@@ -76,6 +97,11 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(lidar_launch),
             condition=IfCondition(use_lidar),
+        ),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(uart_launch),
+            condition=IfCondition(use_uart),
         ),
 
         Node(
@@ -92,6 +118,7 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='static_odom_to_base_footprint',
             output='screen',
+            condition=IfCondition(use_static_odom),
             arguments=[
                 '0', '0', '0',
                 '0', '0', '0',
