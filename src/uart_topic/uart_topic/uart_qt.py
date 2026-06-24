@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
 
         # ---------- 数据显示 ----------
-        data_group = QGroupBox("IMU 数据 (来自 /recive_data)")
+        data_group = QGroupBox("传感器数据 (来自 /recive_data)")
         data_layout = QVBoxLayout()
         self.data_table = QTableWidget()
         self.data_table.setColumnCount(2)
@@ -82,8 +82,8 @@ class MainWindow(QMainWindow):
         input_layout = QHBoxLayout()
         input_layout.addWidget(QLabel("目标速度:"))
         self.speed_spin = QDoubleSpinBox()
-        self.speed_spin.setRange(0.0, 4000.0)
-        self.speed_spin.setSingleStep(100.0)
+        self.speed_spin.setRange(0.0, 0.5)
+        self.speed_spin.setSingleStep(0.05)
         self.speed_spin.setDecimals(1)
         self.speed_spin.setValue(0.0)
         input_layout.addWidget(self.speed_spin)
@@ -121,15 +121,21 @@ class MainWindow(QMainWindow):
     def update_table(self, data):
         """更新表格显示，data 为 recive 消息或 None"""
         if data is None:
-            rows = [("陀螺仪 Z (dps)", "---"),
-                    ("加速度 (g)", "---"),
+            rows = [("x (位置)", "---"),
+                    ("y (位置)", "---"),
+                    ("vx (速度)", "---"),
+                    ("vy (速度)", "---"),
+                    ("陀螺仪 Z (dps)", "---"),
                     ("偏航角 (deg)", "---"),
                     ("俯仰角 (deg)", "---"),
                     ("横滚角 (deg)", "---")]
         else:
             rows = [
+                ("x (位置)", f"{data.x:.3f}"),
+                ("y (位置)", f"{data.y:.3f}"),
+                ("vx (速度)", f"{data.vx:.3f}"),
+                ("vy (速度)", f"{data.vy:.3f}"),
                 ("陀螺仪 Z (dps)", f"{data.gyro_z_dps:.4f}"),
-                ("加速度 (g)", f"{data.accel_g:.4f}"),
                 ("偏航角 (deg)", f"{data.yaw_deg:.3f}"),
                 ("俯仰角 (deg)", f"{data.pitch_deg:.3f}"),
                 ("横滚角 (deg)", f"{data.roll_deg:.3f}"),

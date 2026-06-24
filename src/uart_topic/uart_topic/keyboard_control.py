@@ -26,9 +26,9 @@ class KeyboardControlNode(Node):
     def __init__(self):
         super().__init__('uart_keyboard_control')
 
-        self.declare_parameter('speed_step', 100.0)
+        self.declare_parameter('speed_step', 0.05)
         self.declare_parameter('angle_step', 2.0)
-        self.declare_parameter('max_speed', 4000.0)
+        self.declare_parameter('max_speed', 0.5)
         self.declare_parameter('max_angle', 30.0)
         self.declare_parameter('repeat_rate', 10.0)
 
@@ -93,7 +93,9 @@ class KeyboardControlNode(Node):
         feedback = ''
         if self.latest_feedback is not None:
             feedback = (
-                f" | yaw={self.latest_feedback.yaw_deg:.2f} deg"
+                f" | x={self.latest_feedback.x:.2f} y={self.latest_feedback.y:.2f}"
+                f" vx={self.latest_feedback.vx:.2f} vy={self.latest_feedback.vy:.2f}"
+                f" yaw={self.latest_feedback.yaw_deg:.2f}"
                 f" gyro_z={self.latest_feedback.gyro_z_dps:.2f} dps"
             )
         self.get_logger().info(

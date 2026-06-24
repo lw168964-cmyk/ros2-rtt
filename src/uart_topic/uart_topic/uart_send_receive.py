@@ -53,25 +53,25 @@ class SerialComm:
             self._buffer += data
         return len(data)
 
-    # ---------- IMU 协议解析（固定 23 字节） ----------
+    # ---------- UART 协议解析（固定 35 字节） ----------
     @staticmethod
     def parse_frame(frame: bytes) -> Dict[str, float]:
-        if len(frame) < 23:
-            raise ValueError("帧长度不足（需23字节）")
+        if len(frame) < 35:
+            raise ValueError("帧长度不足（需35字节）")
         if frame[0] != 0xAA or frame[1] != 0x55:
             raise ValueError("无效帧头")
         try:
-            gyro_z = struct.unpack('<f', frame[2:6])[0]
-            accel  = struct.unpack('<f', frame[6:10])[0]
-            yaw    = struct.unpack('<f', frame[10:14])[0]
-            pitch  = struct.unpack('<f', frame[14:18])[0]
-            roll   = struct.unpack('<f', frame[18:22])[0]
-            # checksum = frame[22]   # 不校验也可
+            x, y, vx, vy, gyro_z, yaw, pitch, roll = \
+                struct.unpack('<ffffffff', frame[2:34])
+            # checksum = frame[34]   # 不校验也可
         except Exception as e:
             raise ValueError(f"解包失败: {e}")
         return {
+            "x": x,
+            "y": y,
+            "vx": vx,
+            "vy": vy,
             "gyro_z_dps": gyro_z,
-            "accel_g": accel,
             "yaw_deg": yaw,
             "pitch_deg": pitch,
             "roll_deg": roll,
@@ -83,7 +83,7 @@ class SerialComm:
             idx = self._buffer.find(b'\xAA\x55')
             if idx == -1:
                 break
-            frame_len = 23
+            frame_len = 35
             if len(self._buffer) < idx + frame_len:
                 break
             frame = self._buffer[idx:idx + frame_len]
@@ -168,15 +168,19 @@ class SerialRosNode(Node):
     def publish_recive(self, data: Dict[str, float]):
         """填充自定义 recive 消息并发布"""
         msg = Recive()
+        msg.x = data['x']
+        msg.y = data['y']
+        msg.vx = data['vx']
+        msg.vy = data['vy']
         msg.gyro_z_dps = data['gyro_z_dps']
-        msg.accel_g = data['accel_g']
         msg.yaw_deg = data['yaw_deg']
         msg.pitch_deg = data['pitch_deg']
         msg.roll_deg = data['roll_deg']
         self.recive_pub.publish(msg)
         self.get_logger().debug(
-            f"发布: gyro={msg.gyro_z_dps:.3f}, accel={msg.accel_g:.3f}, "
-            f"yaw={msg.yaw_deg:.2f}, pitch={msg.pitch_deg:.2f}, roll={msg.roll_deg:.2f}"
+            f"发布: x={msg.x:.3f}, y={msg.y:.3f}, vx={msg.vx:.3f}, vy={msg.vy:.3f}, "
+            f"gyro={msg.gyro_z_dps:.3f}, yaw={msg.yaw_deg:.2f}, "
+            f"pitch={msg.pitch_deg:.2f}, roll={msg.roll_deg:.2f}"
         )
 
     def destroy_node(self):
