@@ -48,6 +48,7 @@ def generate_launch_description():
             'odom_frame': 'odom',
             'base_frame': 'base_footprint',
             'publish_tf': True,
+            'publish_rate': LaunchConfiguration('publish_rate'),
         }]
     )
 
