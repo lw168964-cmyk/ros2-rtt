@@ -28,6 +28,7 @@ setup(
             'get_robot_pose = roscar_task.get_robot_pose:main',
             'nav_to_pose = roscar_task.nav_to_pose:main',
             'waypoint_follow = roscar_task.waypoint_follow:main',
+            'cmd_vel_to_rtt = roscar_task.cmd_vel_to_rtt:main',
         ],
     },
 )

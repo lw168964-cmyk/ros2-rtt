@@ -1,6 +1,6 @@
 controller_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.0
@@ -34,7 +34,7 @@ controller_server:
       debug_trajectory_details: false
       transform_tolerance: 0.2
 
-      min_vel_x: 0.0
+      min_vel_x: -0.10
       max_vel_x: 0.10
       min_vel_y: 0.0
       max_vel_y: 0.0
@@ -46,11 +46,11 @@ controller_server:
       max_speed_xy: 0.10
       min_speed_theta: 0.05
 
-      acc_lim_x: 0.35
+      acc_lim_x: 0.20
       acc_lim_y: 0.0
       acc_lim_theta: 1.2
 
-      decel_lim_x: -0.35
+      decel_lim_x: -0.20
       decel_lim_y: 0.0
       decel_lim_theta: -1.2
 
@@ -88,7 +88,7 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_footprint
       transform_tolerance: 0.5
-      use_sim_time: True
+      use_sim_time: False
 
       rolling_window: true
       width: 3
@@ -132,7 +132,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_footprint
       transform_tolerance: 0.5
-      use_sim_time: True
+      use_sim_time: False
 
       footprint: "[[0.16, 0.13], [0.16, -0.13], [-0.16, -0.13], [-0.16, 0.13]]"
       footprint_padding: 0.0
