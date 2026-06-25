@@ -15,7 +15,8 @@ HELP_TEXT = """
 Keyboard control for RTT UART
 -----------------------------
 w/s : increase/decrease target speed
-a/d : increase/decrease steer angle
+a/left  : increase target steer angle by 15 deg
+d/right : decrease target steer angle by 15 deg
 x   : zero speed
 space : zero speed and steer angle
 q   : quit
@@ -27,9 +28,9 @@ class KeyboardControlNode(Node):
         super().__init__('uart_keyboard_control')
 
         self.declare_parameter('speed_step', 0.05)
-        self.declare_parameter('angle_step', 2.0)
+        self.declare_parameter('angle_step', 15.0)
         self.declare_parameter('max_speed', 0.5)
-        self.declare_parameter('max_angle', 30.0)
+        self.declare_parameter('max_angle', 180.0)
         self.declare_parameter('repeat_rate', 10.0)
 
         self.speed_step = float(self.get_parameter('speed_step').value)
@@ -53,7 +54,7 @@ class KeyboardControlNode(Node):
         self.latest_feedback = msg
 
     def clamp_speed(self, value):
-        return max(0.0, min(self.max_speed, value))
+        return self.clamp_symmetric(value, self.max_speed)
 
     def clamp_symmetric(self, value, limit):
         return max(-limit, min(limit, value))
@@ -63,9 +64,9 @@ class KeyboardControlNode(Node):
             self.target_speed += self.speed_step
         elif key == 's':
             self.target_speed -= self.speed_step
-        elif key == 'a':
+        elif key == 'a' or key == '\x1b[D':
             self.steer_angle += self.angle_step
-        elif key == 'd':
+        elif key == 'd' or key == '\x1b[C':
             self.steer_angle -= self.angle_step
         elif key == 'x':
             self.target_speed = 0.0
@@ -108,6 +109,10 @@ def read_key(settings, timeout=0.1):
     tty.setraw(sys.stdin.fileno())
     ready, _, _ = select.select([sys.stdin], [], [], timeout)
     key = sys.stdin.read(1) if ready else ''
+    if key == '\x1b':
+        ready, _, _ = select.select([sys.stdin], [], [], 0.01)
+        if ready:
+            key += sys.stdin.read(2)
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 

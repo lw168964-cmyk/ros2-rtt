@@ -82,16 +82,16 @@ class MainWindow(QMainWindow):
         input_layout = QHBoxLayout()
         input_layout.addWidget(QLabel("目标速度:"))
         self.speed_spin = QDoubleSpinBox()
-        self.speed_spin.setRange(0.0, 0.5)
+        self.speed_spin.setRange(-0.5, 0.5)
         self.speed_spin.setSingleStep(0.05)
-        self.speed_spin.setDecimals(1)
+        self.speed_spin.setDecimals(2)
         self.speed_spin.setValue(0.0)
         input_layout.addWidget(self.speed_spin)
 
         input_layout.addWidget(QLabel("转向角度:"))
         self.angle_spin = QDoubleSpinBox()
         self.angle_spin.setRange(-180.0, 180.0)
-        self.angle_spin.setSingleStep(0.5)
+        self.angle_spin.setSingleStep(15.0)
         self.angle_spin.setDecimals(1)
         self.angle_spin.setValue(0.0)
         input_layout.addWidget(self.angle_spin)
@@ -162,7 +162,7 @@ class MainWindow(QMainWindow):
 
         # 预览（模仿之前串口发送的十六进制，仅为显示，实际编码在串口节点内进行）
         # 这里我们显示将要发送的数据，但不生成实际串口帧，只做提示
-        preview = f"speed={speed:.1f}, angle={angle:.1f}"
+        preview = f"speed={speed:.2f}, angle={angle:.1f}"
         self.send_preview.setText(preview)
 
         # 也可显示为十六进制（如要模仿，可调用串口节点的打包函数，但为了简洁，此处略）
