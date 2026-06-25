@@ -161,58 +161,6 @@ target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   )
 
-add_executable(list_devices_node
-  src/list_devices_node.cpp
-  )
-target_include_directories(list_devices_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${OpenCV_INCLUDED_DIRS}
-  ${LIBUVC_INCLUDE_DIRS}
-  ${GLOG__INCLUDE_DIRS}
-  )
-
-ament_target_dependencies(list_devices_node
-  ${dependencies}
-  )
-target_link_libraries(list_devices_node
-  ${OpenCV_LIBS}
-  Eigen3::Eigen
-  ${GLOG_LIBRARIES}
-  ${LIBUVC_LIBRARIES}
-  -lOpenNI2
-  -L${ORBBEC_OPENNI2_REDIST}
-  ${PROJECT_NAME}
-  )
-
-add_executable(clean_shm_node
-  src/clean_up_shm_node.cpp
-  )
-
-target_include_directories(clean_shm_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${OpenCV_INCLUDED_DIRS}
-  ${LIBUVC_INCLUDE_DIRS}
-  ${GLOG__INCLUDE_DIRS}
-  )
-
-ament_target_dependencies(clean_shm_node
-  ${dependencies}
-  )
-
-target_link_libraries(clean_shm_node
-  ${OpenCV_LIBS}
-  Eigen3::Eigen
-  ${GLOG_LIBRARIES}
-  ${LIBUVC_LIBRARIES}
-  -lOpenNI2
-  -L${ORBBEC_OPENNI2_REDIST}
-  ${PROJECT_NAME}
-  )
-
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -228,8 +176,7 @@ install(DIRECTORY openni2_redist/${HOST_PLATFORM}/OpenNI2
   DESTINATION lib/
   )
 
-install(TARGETS list_devices_node
-  clean_shm_node
+install(TARGETS
   ${PROJECT_NAME}_node
   DESTINATION lib/${PROJECT_NAME}/
   )
