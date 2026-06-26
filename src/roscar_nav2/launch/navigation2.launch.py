@@ -54,8 +54,7 @@ def generate_launch_description():
     lidar_launch = LaunchConfiguration('lidar_launch')
     uart_launch = LaunchConfiguration('uart_launch')
     max_linear_speed = LaunchConfiguration('max_linear_speed')
-    max_steer_angle = LaunchConfiguration('max_steer_angle')
-    angular_lookahead = LaunchConfiguration('angular_lookahead')
+    max_angular_velocity = LaunchConfiguration('max_angular_velocity')
 
     localization_lifecycle_nodes = [
         'map_server',
@@ -195,14 +194,9 @@ def generate_launch_description():
             description='Absolute RTT target speed limit in m/s.',
         ),
         DeclareLaunchArgument(
-            'max_steer_angle',
-            default_value='180.0',
-            description='Absolute RTT target angle limit in degrees.',
-        ),
-        DeclareLaunchArgument(
-            'angular_lookahead',
-            default_value='1.0',
-            description='Seconds used to convert angular velocity to an RTT target angle.',
+            'max_angular_velocity',
+            default_value='0.45',
+            description='Absolute RTT angular velocity limit in rad/s.',
         ),
 
         IncludeLaunchDescription(
@@ -364,10 +358,8 @@ def generate_launch_description():
             parameters=[{
                 'cmd_vel_topic': cmd_vel_out,
                 'send_topic': '/send_cmd',
-                'feedback_topic': '/recive_data',
                 'max_speed': max_linear_speed,
-                'max_angle': max_steer_angle,
-                'angular_lookahead': angular_lookahead,
+                'max_angular_velocity': max_angular_velocity,
             }],
         ),
         Node(

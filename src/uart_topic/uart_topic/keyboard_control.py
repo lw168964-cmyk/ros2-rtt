@@ -15,10 +15,10 @@ HELP_TEXT = """
 Keyboard control for RTT UART
 -----------------------------
 w/s : increase/decrease target speed
-a/left  : increase target steer angle by 15 deg
-d/right : decrease target steer angle by 15 deg
+a/left  : increase angular velocity
+d/right : decrease angular velocity
 x   : zero speed
-space : zero speed and steer angle
+space : zero speed and angular velocity
 q   : quit
 """
 
@@ -28,19 +28,20 @@ class KeyboardControlNode(Node):
         super().__init__('uart_keyboard_control')
 
         self.declare_parameter('speed_step', 0.05)
-        self.declare_parameter('angle_step', 15.0)
+        self.declare_parameter('angular_step', 0.05)
         self.declare_parameter('max_speed', 0.5)
-        self.declare_parameter('max_angle', 180.0)
+        self.declare_parameter('max_angular_velocity', 0.45)
         self.declare_parameter('repeat_rate', 10.0)
 
         self.speed_step = float(self.get_parameter('speed_step').value)
-        self.angle_step = float(self.get_parameter('angle_step').value)
+        self.angular_step = float(self.get_parameter('angular_step').value)
         self.max_speed = float(self.get_parameter('max_speed').value)
-        self.max_angle = float(self.get_parameter('max_angle').value)
+        self.max_angular_velocity = float(
+            self.get_parameter('max_angular_velocity').value)
         repeat_rate = float(self.get_parameter('repeat_rate').value)
 
         self.target_speed = 0.0
-        self.steer_angle = 0.0
+        self.angular_velocity = 0.0
         self.latest_feedback = None
 
         self.publisher = self.create_publisher(Send, '/send_cmd', 10)
@@ -65,29 +66,32 @@ class KeyboardControlNode(Node):
         elif key == 's':
             self.target_speed -= self.speed_step
         elif key == 'a' or key == '\x1b[D':
-            self.steer_angle += self.angle_step
+            self.angular_velocity += self.angular_step
         elif key == 'd' or key == '\x1b[C':
-            self.steer_angle -= self.angle_step
+            self.angular_velocity -= self.angular_step
         elif key == 'x':
             self.target_speed = 0.0
         elif key == ' ':
             self.target_speed = 0.0
-            self.steer_angle = 0.0
+            self.angular_velocity = 0.0
         elif key == 'q':
             self.target_speed = 0.0
-            self.steer_angle = 0.0
+            self.angular_velocity = 0.0
             self.publish_command()
             return False
 
         self.target_speed = self.clamp_speed(self.target_speed)
-        self.steer_angle = self.clamp_symmetric(self.steer_angle, self.max_angle)
+        self.angular_velocity = self.clamp_symmetric(
+            self.angular_velocity,
+            self.max_angular_velocity,
+        )
         self.print_status()
         return True
 
     def publish_command(self):
         msg = Send()
         msg.target_speed = float(self.target_speed)
-        msg.steer_angle = float(self.steer_angle)
+        msg.steer_angle = float(self.angular_velocity)
         self.publisher.publish(msg)
 
     def print_status(self):
@@ -101,7 +105,7 @@ class KeyboardControlNode(Node):
             )
         self.get_logger().info(
             f"send target_speed={self.target_speed:.3f}, "
-            f"steer_angle={self.steer_angle:.2f}{feedback}"
+            f"angular_velocity={self.angular_velocity:.3f} rad/s{feedback}"
         )
 
 
@@ -133,7 +137,7 @@ def main(args=None):
         pass
     finally:
         node.target_speed = 0.0
-        node.steer_angle = 0.0
+        node.angular_velocity = 0.0
         node.publish_command()
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
         node.destroy_node()

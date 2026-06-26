@@ -36,11 +36,11 @@ class RosQtNode(Node):
     def recive_callback(self, msg):
         self.latest_data = msg
 
-    def publish_command(self, speed, angle):
-        """发布速度/角度指令"""
+    def publish_command(self, speed, angular_velocity):
+        """发布速度/角速度指令"""
         msg = Send()
         msg.target_speed = float(speed)
-        msg.steer_angle = float(angle)
+        msg.steer_angle = float(angular_velocity)
         self.publisher.publish(msg)
 
 
@@ -88,11 +88,11 @@ class MainWindow(QMainWindow):
         self.speed_spin.setValue(0.0)
         input_layout.addWidget(self.speed_spin)
 
-        input_layout.addWidget(QLabel("转向角度:"))
+        input_layout.addWidget(QLabel("角速度(rad/s):"))
         self.angle_spin = QDoubleSpinBox()
-        self.angle_spin.setRange(-180.0, 180.0)
-        self.angle_spin.setSingleStep(15.0)
-        self.angle_spin.setDecimals(1)
+        self.angle_spin.setRange(-0.45, 0.45)
+        self.angle_spin.setSingleStep(0.05)
+        self.angle_spin.setDecimals(3)
         self.angle_spin.setValue(0.0)
         input_layout.addWidget(self.angle_spin)
 
@@ -156,13 +156,13 @@ class MainWindow(QMainWindow):
     def send_command(self):
         """发送控制指令"""
         speed = self.speed_spin.value()
-        angle = self.angle_spin.value()
+        angular_velocity = self.angle_spin.value()
         # 发布到 ROS2
-        self.ros_node.publish_command(speed, angle)
+        self.ros_node.publish_command(speed, angular_velocity)
 
         # 预览（模仿之前串口发送的十六进制，仅为显示，实际编码在串口节点内进行）
         # 这里我们显示将要发送的数据，但不生成实际串口帧，只做提示
-        preview = f"speed={speed:.2f}, angle={angle:.1f}"
+        preview = f"speed={speed:.2f}, angular={angular_velocity:.3f} rad/s"
         self.send_preview.setText(preview)
 
         # 也可显示为十六进制（如要模仿，可调用串口节点的打包函数，但为了简洁，此处略）

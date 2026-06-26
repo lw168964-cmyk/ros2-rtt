@@ -162,9 +162,9 @@ behavior_server:
     transform_tolerance: 0.1
     use_sim_time: false
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.75
-    min_rotational_vel: 0.05
-    rotational_acc_lim: 1.2
+    max_rotational_vel: 0.45
+    min_rotational_vel: 0.03
+    rotational_acc_lim: 0.8
 
 robot_state_publisher:
   ros__parameters:
@@ -187,11 +187,11 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.10, 0.0, 0.75]
-    min_velocity: [-0.10, 0.0, -0.75]
-    max_accel: [0.20, 0.0, 1.2]
-    max_decel: [-0.20, 0.0, -1.2]
+    max_velocity: [0.10, 0.0, 0.45]
+    min_velocity: [-0.10, 0.0, -0.45]
+    max_accel: [0.20, 0.0, 0.8]
+    max_decel: [-0.20, 0.0, -0.8]
     odom_topic: "/odom"
     odom_duration: 0.1
-    deadband_velocity: [0.005, 0.0, 0.01]
+    deadband_velocity: [0.005, 0.0, 0.03]
     velocity_timeout: 1.0
