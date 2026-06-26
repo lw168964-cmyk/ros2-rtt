@@ -30,6 +30,7 @@ class CmdVelToRttNode(Node):
         self.declare_parameter('speed_deadband', 0.003)
         self.declare_parameter('angular_deadband', 0.01)
         self.declare_parameter('angular_lookahead', 1.0)
+        self.declare_parameter('angle_wrap_hold_band', 5.0)
         self.declare_parameter('command_timeout', 0.5)
         self.declare_parameter('publish_rate', 20.0)
 
@@ -41,12 +42,16 @@ class CmdVelToRttNode(Node):
         self.speed_deadband = abs(float(self.get_parameter('speed_deadband').value))
         self.angular_deadband = abs(float(self.get_parameter('angular_deadband').value))
         self.angular_lookahead = float(self.get_parameter('angular_lookahead').value)
+        self.angle_wrap_hold_band = abs(float(self.get_parameter('angle_wrap_hold_band').value))
         self.command_timeout = float(self.get_parameter('command_timeout').value)
         publish_rate = float(self.get_parameter('publish_rate').value)
 
         self.current_speed = 0.0
-        self.feedback_yaw_deg = None
-        self.target_angle_deg = 0.0
+        self.feedback_yaw_raw_deg = None
+        self.feedback_yaw_unwrapped_deg = None
+        self.target_angle_unwrapped_deg = 0.0
+        self.last_sent_angle_deg = None
+        self.target_initialized = False
         self.last_cmd_time = None
 
         self.publisher = self.create_publisher(Send, self.send_topic, 10)
@@ -72,8 +77,23 @@ class CmdVelToRttNode(Node):
             % (self.cmd_vel_topic, self.send_topic, self.max_speed)
         )
 
+    def unwrap_feedback_yaw(self, yaw_deg):
+        yaw_deg = normalize_degrees(yaw_deg)
+        if self.feedback_yaw_raw_deg is None:
+            self.feedback_yaw_raw_deg = yaw_deg
+            self.feedback_yaw_unwrapped_deg = yaw_deg
+            return
+
+        delta = normalize_degrees(yaw_deg - self.feedback_yaw_raw_deg)
+        self.feedback_yaw_raw_deg = yaw_deg
+        self.feedback_yaw_unwrapped_deg += delta
+
     def feedback_callback(self, msg):
-        self.feedback_yaw_deg = normalize_degrees(float(msg.yaw_deg))
+        self.unwrap_feedback_yaw(float(msg.yaw_deg))
+        if not self.target_initialized and self.feedback_yaw_unwrapped_deg is not None:
+            self.target_angle_unwrapped_deg = self.feedback_yaw_unwrapped_deg
+            self.last_sent_angle_deg = self.to_rtt_angle(self.target_angle_unwrapped_deg)
+            self.target_initialized = True
 
     def cmd_callback(self, msg):
         speed = clamp(float(msg.linear.x), -self.max_speed, self.max_speed)
@@ -84,22 +104,18 @@ class CmdVelToRttNode(Node):
         if abs(angular_z) < self.angular_deadband:
             angular_z = 0.0
 
-        base_angle = self.target_angle_deg
-        if self.feedback_yaw_deg is not None:
-            base_angle = self.feedback_yaw_deg
+        base_angle = self.target_angle_unwrapped_deg
+        if self.feedback_yaw_unwrapped_deg is not None:
+            base_angle = self.feedback_yaw_unwrapped_deg
 
         if angular_z == 0.0:
-            if self.feedback_yaw_deg is not None:
-                self.target_angle_deg = self.feedback_yaw_deg
+            if speed != 0.0 and self.feedback_yaw_unwrapped_deg is not None:
+                self.target_angle_unwrapped_deg = self.feedback_yaw_unwrapped_deg
         else:
             angle_delta = math.degrees(angular_z * self.angular_lookahead)
-            self.target_angle_deg = normalize_degrees(base_angle + angle_delta)
+            self.target_angle_unwrapped_deg = base_angle + angle_delta
 
-        self.target_angle_deg = clamp(
-            self.target_angle_deg,
-            -self.max_angle,
-            self.max_angle,
-        )
+        self.target_initialized = True
         self.current_speed = speed
         self.last_cmd_time = self.get_clock().now()
 
@@ -109,16 +125,27 @@ class CmdVelToRttNode(Node):
         age = (self.get_clock().now() - self.last_cmd_time).nanoseconds * 1e-9
         return age > self.command_timeout
 
+    def to_rtt_angle(self, angle):
+        stable_angle = normalize_degrees(angle)
+        if self.last_sent_angle_deg is not None:
+            current_near_wrap = abs(abs(stable_angle) - 180.0) <= self.angle_wrap_hold_band
+            last_near_wrap = abs(abs(self.last_sent_angle_deg) - 180.0) <= self.angle_wrap_hold_band
+            crossed_wrap = stable_angle * self.last_sent_angle_deg < 0.0
+            if current_near_wrap and last_near_wrap and crossed_wrap:
+                stable_angle = math.copysign(180.0, self.last_sent_angle_deg)
+
+        stable_angle = clamp(stable_angle, -self.max_angle, self.max_angle)
+        self.last_sent_angle_deg = stable_angle
+        return stable_angle
+
     def publish_command(self):
         msg = Send()
         if self.command_is_stale():
             msg.target_speed = 0.0
-            if self.feedback_yaw_deg is not None:
-                self.target_angle_deg = self.feedback_yaw_deg
         else:
             msg.target_speed = float(self.current_speed)
 
-        msg.steer_angle = float(self.target_angle_deg)
+        msg.steer_angle = float(self.to_rtt_angle(self.target_angle_unwrapped_deg))
         self.publisher.publish(msg)
 
 
@@ -132,7 +159,7 @@ def main(args=None):
     finally:
         stop = Send()
         stop.target_speed = 0.0
-        stop.steer_angle = float(node.target_angle_deg)
+        stop.steer_angle = float(node.to_rtt_angle(node.target_angle_unwrapped_deg))
         node.publisher.publish(stop)
         node.destroy_node()
         if rclpy.ok():
