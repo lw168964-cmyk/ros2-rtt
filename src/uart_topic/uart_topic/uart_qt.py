@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         input_layout = QHBoxLayout()
         input_layout.addWidget(QLabel("目标速度:"))
         self.speed_spin = QDoubleSpinBox()
-        self.speed_spin.setRange(-0.5, 0.5)
+        self.speed_spin.setRange(-0.15, 0.15)
         self.speed_spin.setSingleStep(0.05)
         self.speed_spin.setDecimals(2)
         self.speed_spin.setValue(0.0)

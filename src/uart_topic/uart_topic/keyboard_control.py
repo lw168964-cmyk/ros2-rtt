@@ -29,7 +29,7 @@ class KeyboardControlNode(Node):
 
         self.declare_parameter('speed_step', 0.05)
         self.declare_parameter('angular_step', 0.05)
-        self.declare_parameter('max_speed', 0.5)
+        self.declare_parameter('max_speed', 0.15)
         self.declare_parameter('max_angular_velocity', 0.45)
         self.declare_parameter('repeat_rate', 10.0)
 

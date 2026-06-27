@@ -55,6 +55,11 @@ def generate_launch_description():
     uart_launch = LaunchConfiguration('uart_launch')
     max_linear_speed = LaunchConfiguration('max_linear_speed')
     max_angular_velocity = LaunchConfiguration('max_angular_velocity')
+    speed_filter_alpha = LaunchConfiguration('speed_filter_alpha')
+    angular_filter_alpha = LaunchConfiguration('angular_filter_alpha')
+    angular_scale = LaunchConfiguration('angular_scale')
+    straight_speed_threshold = LaunchConfiguration('straight_speed_threshold')
+    straight_angular_deadband = LaunchConfiguration('straight_angular_deadband')
 
     localization_lifecycle_nodes = [
         'map_server',
@@ -190,13 +195,38 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'max_linear_speed',
-            default_value='0.1',
+            default_value='0.15',
             description='Absolute RTT target speed limit in m/s.',
         ),
         DeclareLaunchArgument(
             'max_angular_velocity',
             default_value='0.45',
             description='Absolute RTT angular velocity limit in rad/s.',
+        ),
+        DeclareLaunchArgument(
+            'speed_filter_alpha',
+            default_value='0.35',
+            description='Low-pass filter alpha for RTT speed command.',
+        ),
+        DeclareLaunchArgument(
+            'angular_filter_alpha',
+            default_value='0.30',
+            description='Low-pass filter alpha for RTT angular velocity command.',
+        ),
+        DeclareLaunchArgument(
+            'angular_scale',
+            default_value='1.0',
+            description='Scale for RTT angular velocity command. Positive keeps left-positive/right-negative chassis convention.',
+        ),
+        DeclareLaunchArgument(
+            'straight_speed_threshold',
+            default_value='0.05',
+            description='Speed threshold for applying straight-line angular deadband.',
+        ),
+        DeclareLaunchArgument(
+            'straight_angular_deadband',
+            default_value='0.05',
+            description='Negative angular commands below this are zeroed while moving straight.',
         ),
 
         IncludeLaunchDescription(
@@ -360,6 +390,11 @@ def generate_launch_description():
                 'send_topic': '/send_cmd',
                 'max_speed': max_linear_speed,
                 'max_angular_velocity': max_angular_velocity,
+                'speed_filter_alpha': speed_filter_alpha,
+                'angular_filter_alpha': angular_filter_alpha,
+                'angular_scale': angular_scale,
+                'straight_speed_threshold': straight_speed_threshold,
+                'straight_angular_deadband': straight_angular_deadband,
             }],
         ),
         Node(

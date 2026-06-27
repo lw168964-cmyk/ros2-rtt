@@ -34,8 +34,8 @@ controller_server:
       debug_trajectory_details: false
       transform_tolerance: 0.2
 
-      min_vel_x: -0.10
-      max_vel_x: 0.10
+      min_vel_x: -0.15
+      max_vel_x: 0.15
       min_vel_y: 0.0
       max_vel_y: 0.0
 
@@ -43,7 +43,7 @@ controller_server:
       min_vel_theta: -0.45
 
       min_speed_xy: 0.0
-      max_speed_xy: 0.10
+      max_speed_xy: 0.15
       min_speed_theta: 0.03
 
       acc_lim_x: 0.20
